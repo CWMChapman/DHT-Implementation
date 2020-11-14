@@ -33,3 +33,6 @@
 
 # Ignore the folder called build anywhere, but not files called build
 build/
+
+# Ignore DS STORE!!!!!
+.DS_Store

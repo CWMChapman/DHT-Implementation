@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# Ignore the folder called build anywhere, but not files called build
+build/

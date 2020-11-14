@@ -11,7 +11,7 @@ set(CLIENT_FILES
 )
 
 set(SERVER_FILES
-  src/server.cpp
+  src/server0.cpp
 )
 
 add_executable(client ${CLIENT_FILES})

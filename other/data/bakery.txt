@@ -1,0 +1,23 @@
+@employees
+Brad
+Claudia
+Simone
+
+@items
+Biscuit, 3.50
+Bun, 0.99
+Brownie, 4.75
+White Loaf, 7.50
+Wheat Loaf, 8.25
+
+@orders
+Claudia: 4 Wheat Loaf, 7 Biscuit, 6 Bun, 4 Brownie
+Brad: 1 Bun, 2 Brownie, 8 Biscuit, 1 White Loaf
+Brad: 8 Brownie, 4 Bun, 5 Wheat Loaf
+Claudia: 1 Wheat Loaf, 5 Bun, 1 Biscuit, 5 Brownie
+Brad: 8 Biscuit, 6 White Loaf, 2 Bun
+Claudia: 2 Wheat Loaf
+Brad: 5 White Loaf, 3 Wheat Loaf, 9 Brownie
+Simone: 1 Wheat Loaf, 5 Brownie, 5 Biscuit
+Claudia: 3 Brownie, 7 Wheat Loaf, 5 White Loaf, 5 Biscuit
+Brad: 6 Brownie, 9 Wheat Loaf, 6 White Loaf

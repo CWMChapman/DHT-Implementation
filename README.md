@@ -16,5 +16,60 @@ The "tracker" server is responsible for all of the interactions between the clie
 
 
 ## To-Do:
-1. Create this tracker server
+1. Create this tracker (proxy) server
+  1. Forward the message to the server based on the 32 bit key.
 2. Create this hash function that determines which server to look for the key value pair or to put the key value pair.
+
+
+## Message Type
+2 bit message type, 32 bit key, 32 bit value
+
+
+M is a 2-bit message type, corresponding to 4 possible messages given shortly, K is a 32-bit key, V is a 32-bit value. The four message types in the API are:
+* M=00: Insert
+* M=01: Lookup
+* M=10: Delete
+* M=11: Do Nothing. For later, maybe we do this to reorganize the servers keys and redistribute things in case a server is added or removed.
+
+## Proxy Server Message Type
+K is a 32-bit key. Whole message is just 4 bytes.
+
+
+## Encode and Decode Message
+0 = get message type
+
+
+1 = get key
+
+
+2 = get value
+
+
+
+
+int main_server_decode(std::array<uint8_t, 4> &message) { /* *** */ }
+
+
+void main_server_encode(std::array<uint8_t, 4> &message) { /* *** */ }
+
+int decode(int section) { /* *** */ }
+
+
+void encode(std::array<uint8_t, 9> &message, int message_type, int key, int value) { /* *** */ } 
+
+## Hash Function
+int hash(int key) { 
+  return key % numServers;
+}
+
+## Tracker (Proxy) Server
+Gets the message, find the key, return back to the client the port of the server. Client will then use that port to connect to the actual server.
+Return message with port number so its still a 4 byte message. 
+
+int ports [numServers];
+
+
+
+
+
+

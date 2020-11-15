@@ -8,6 +8,7 @@ int main(int argc, char** argv) {
     printf("ERROR: DONT FORGET THE PORT IS A COMMAND LINE ARGUMENT!");
     return 1;
   }
+
   asio::io_context io_context;
   tcp::resolver resolver(io_context);
   tcp::resolver::results_type endpoints = resolver.resolve("127.0.0.1", argv[1]);

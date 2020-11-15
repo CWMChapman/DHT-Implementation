@@ -9,7 +9,7 @@ using asio::ip::tcp;
 
 int main() {
   asio::io_context io_context;
-  tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3000));
+  tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3001));
 
   // Use this bakery to handle queries from the client
   // Bakery bakery = text_deserializer("../data/bakery.txt");

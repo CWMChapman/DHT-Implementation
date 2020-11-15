@@ -7,6 +7,24 @@
 
 using asio::ip::tcp;
 
+/* The Main Server 
+
+This server acts as a tracker server in a traditional P2P network. The  client first communicates with the tacker server 
+to determine which server in the DHT network it needs to communicate with.
+
+The message format will be a 4 byte message that contains the key of type int (4 byte, 32 bits).
+
+An array of 4 elements, each element is a uint8_t.
+
+*/
+
+
+int main_server_decode(std::array<uint8_t, 4> &message) {
+
+    int ret = 0;
+    return ret;
+}
+
 
 int main() {
   asio::io_context io_context;

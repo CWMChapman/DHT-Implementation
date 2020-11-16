@@ -36,26 +36,20 @@ K is a 32-bit key. Whole message is just 4 bytes.
 
 
 ## Encode and Decode Message
-0 = get message type
+#### Section:
+* 0 = message action
+* 1 = key
+* 2 = value
 
 
-1 = get key
+int main_server_decode(std::array<uint8_t, 4>* message) { /* *** */ }
+
+void main_server_encode(std::array<uint8_t, 4>* message, int port) { /* *** */ }
 
 
-2 = get value
+int decode_9byte(std::array<uint8_t, 9> *message, int section) { /* *** */ }
 
-
-
-
-int main_server_decode(std::array<uint8_t, 4> &message) { /* *** */ }
-
-
-void main_server_encode(std::array<uint8_t, 4> &message) { /* *** */ }
-
-int decode(int section) { /* *** */ }
-
-
-void encode(std::array<uint8_t, 9> &message, int message_type, int key, int value) { /* *** */ } 
+void encode_9byte(std::array<uint8_t, 9> *message, int action, int key, int value) { /* *** */ }
 
 ## Hash Function
 int hash(int key) { 

@@ -8,6 +8,7 @@
 using asio::ip::tcp;
 
 int main() {
+  std::cout << "Port: 3002" << std::endl;
   asio::io_context io_context;
   tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3002));
 

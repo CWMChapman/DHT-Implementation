@@ -60,18 +60,20 @@ void main_server_encode(std::array<uint8_t, 4>* message, int port) {
     return;
 }
 
-int hash(int key){ 
-    std::cout << "Send to server " << key % activeServers << std::endl;
-    return key % activeServers;
-}
-
 void rehash(){
     activeServers++;
-
-
+    //Get all keys from all servers and rehash them with new value
+    //Need a way to get all items from each server
 }
 
+int proxy(std::array<uint8_t, 4>* message){
+    int server = message;
+    std::cout << "Send to server " << message % activeServers << std::endl;
+    return message % activeServers;
+)
+
 int main() {
+  
     for(int i = 1; i < 4; i++){
         availableServers.push_back(3000 + i);
     }
@@ -119,5 +121,5 @@ int main() {
         asio::write(socket, asio::buffer(buf), error);
     }
 
-    return 0;
+    //return 0;
 }

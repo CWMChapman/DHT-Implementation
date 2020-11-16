@@ -4,13 +4,14 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <thread>
 
 using asio::ip::tcp;
 
-int main() {
-  std::cout << "Port: 3002" << std::endl;
+void server(int port) {
+  //  std::cout << "Port: " << port << std::endl;
   asio::io_context io_context;
-  tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3002));
+  tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
 
   // Use this bakery to handle queries from the client
   // Bakery bakery = text_deserializer("../data/bakery.txt");
@@ -42,6 +43,18 @@ int main() {
 
     asio::write(socket, asio::buffer(buf), error);
   }
+  return;
+}
+
+int main() {
+  // int port = 3003;
+  std::vector<std::thread> servers;
+
+  for (int i = 3001; i < 3004; ++i)
+    servers.push_back(std::thread(server, i)); // t(function, a0, a1, ...)
+  for (auto &server : servers) 
+    server.join();
+
 
   return 0;
 }

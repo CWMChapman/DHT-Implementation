@@ -19,6 +19,8 @@ An array of 4 elements, each element is a uint8_t (8 bits).
 [31 ... 0], such that the most significant bit is the on the left.
 
 */
+std::vector<int> availableServers;
+int activeServers;
 
 int main_server_decode(std::array<uint8_t, 4>* message) {
     int array_index = 0; // remember that the array is of lenght 4, not 4 * 8.
@@ -58,11 +60,26 @@ void main_server_encode(std::array<uint8_t, 4>* message, int port) {
     return;
 }
 
+int hash(int key){ 
+    std::cout << "Send to server " << key % activeServers << std::endl;
+    return key % activeServers;
+}
 
+void rehash(){
+    activeServers++;
+
+
+}
 
 int main() {
+    for(int i = 1; i < 4; i++){
+        availableServers.push_back(3000 + i);
+    }
+
+    activeServers = 2;
 
     std::array<uint8_t, 4> message;
+    
     main_server_encode(&message, 3001);
     int port = main_server_decode(&message);
     std::cout << "The port is: " << port << std::endl;

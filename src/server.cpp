@@ -58,6 +58,7 @@ int main() {
 
   return 0;
 }
+
 //Where will we be processing all of the work??
 
 //We are gonna need certain things for all these servers
@@ -79,5 +80,5 @@ int main() {
 
   //if the action is to delete a key
     /*void delete( KEY ){
-      
+      serverMap.erase(KEY);
     }*/  //set key/val

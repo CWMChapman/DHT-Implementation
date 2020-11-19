@@ -58,3 +58,26 @@ int main() {
 
   return 0;
 }
+//Where will we be processing all of the work??
+
+//We are gonna need certain things for all these servers
+  //Need to create an unordered map
+    // unordered_map<int, int> serverMap;
+
+  //if the action is to create a key/val 
+    /*void createKey( KEY, VALUE ){
+      serverMap[VALUE]= KEY
+    }*/
+
+  //if the action is to find a key
+    /*int find( KEY ){
+      if (serverMap.find(key) == serverMap.end()) 
+        cout << key << " not found\n"; 
+      else
+        return key
+    }*/ 
+
+  //if the action is to delete a key
+    /*void delete( KEY ){
+      
+    }*/  //set key/val

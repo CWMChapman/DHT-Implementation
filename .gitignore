@@ -39,3 +39,6 @@ build/
 
 # Ignore third_party/
 third_party/
+
+# Ignore .vscode
+.vscode/

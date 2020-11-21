@@ -5,6 +5,8 @@
 #include <string>
 #include <unordered_map>
 
+#include "../include/functions.hpp"
+
 using asio::ip::tcp;
 
 /* The Main Server 
@@ -19,46 +21,6 @@ An array of 4 elements, each element is a uint8_t (8 bits).
 [31 ... 0], such that the most significant bit is the on the left.
 
 */
-
-int main_server_decode(std::array<uint8_t, 4>* message) {
-    int array_index = 0; // remember that the array is of lenght 4, not 4 * 8.
-    int bit_index = 0;   // which bit within each element of the array we are refering to
-    int ret = 0;         // what we will return
-
-    for (int i = 0; i < 32; ++i) {
-        ret |= (((*message)[array_index] >> bit_index) & 1) << (31 - i);  
-
-        if ((i + 1) % 8 == 0) {
-             ++array_index;
-            bit_index = 0;
-        }
-        else {
-            ++bit_index;
-        }
-    }
-    return ret;
-}
-
-void main_server_encode(std::array<uint8_t, 4>* message, int port) {
-    int array_index = 0; // remember that the array is of lenght 4, not 4 * 8.
-    int bit_index = 0;   // which bit within each element of the array we are refering to
-
-    for (int i = 0; i < 32; ++i) {
-        (*message)[array_index] &= ~(1 << bit_index);
-        (*message)[array_index] |= ((port >> (31-i)) & 1) << bit_index;
-
-        if ((i + 1) % 8 == 0) {
-            ++array_index;
-            bit_index = 0;
-        }
-        else {
-            ++bit_index;
-        }
-    }
-    return;
-}
-
-
 
 int main() {
 

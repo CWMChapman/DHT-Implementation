@@ -39,11 +39,14 @@ int value = decode_9byte(&message, 2);
 std::cout << "After: \t\tAction: " << action << ", Key: " << key << ", Value: " << value << std::endl;
 */
 
-int main() {
-
-	int action = 0;
-	int key = 1231234;
-	int value = 12345;	
+int main(int argc, char** argv) {
+	// int action = std::stoi(argv[1]);
+	// int key = std::stoi(argv[2]);
+	// int value = std::stoi(argv[3]);
+	
+	int action = 0; 
+	int key = 12345; 
+	int value = 54321; 	
 	
 	// FIRST CONNECT TO TRACKER SERVER TO GET PORT(S):
 	asio::io_context io_context;
@@ -82,7 +85,7 @@ int main() {
 	int a = decode_9byte(&server_message, 0);
 	int k = decode_9byte(&server_message, 1);
 	int v = decode_9byte(&server_message, 2);
-	// printf("action: %d, %d \nkey: %d, %d \nvalue: %d, %d \n\n", action, a, key, k, value, v); // testing to make sure it returns what i expect
+	printf("action: %d, %d \nkey: %d, %d \nvalue: %d, %d \n\n", action, a, key, k, value, v); // testing to make sure it returns what i expect
 
 
 	return 0;

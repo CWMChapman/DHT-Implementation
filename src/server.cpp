@@ -30,7 +30,7 @@ void server(int port) {
     asio::error_code error;
     size_t len = socket.read_some(asio::buffer(server_message), error);
 
-    printf("SERVER PORT: %d", port);
+    printf("SERVER PORT: %d", port + 3001);
 
     int action = decode_9byte(&server_message, 0);
     int key = decode_9byte(&server_message, 1);

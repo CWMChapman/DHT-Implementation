@@ -141,11 +141,16 @@ uint64_t hash(const uint64_t& n){
 
 int hashToServerPort(int key, int numServers) {
 	/* This function takes a key and returns (for now) 1 int that represents a port  */
-	int port = hash(key) % numServers;
-	// int h = hash(key);
-	// printf("hash: %d\n", h);
+	int port = hash(key) % numServers + 3001;
 	return port;
 }
+
+
+
+
+/*
+[ip1, ip2, ip3 ...]
+*/
 
 int getNumServers() {
 	int numServers = 10;

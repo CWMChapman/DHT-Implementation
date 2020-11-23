@@ -39,6 +39,15 @@ int value = decode_9byte(&message, 2);
 std::cout << "After: \t\tAction: " << action << ", Key: " << key << ", Value: " << value << std::endl;
 */
 
+/* TODO
+Set it up such that the main server will also return 
+
+*/
+
+
+
+
+
 int main(int argc, char** argv) {
 	// int action = std::stoi(argv[1]);
 	// int key = std::stoi(argv[2]);

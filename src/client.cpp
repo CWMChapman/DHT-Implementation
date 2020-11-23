@@ -53,11 +53,17 @@ Set it up such that the main server will also return
 
 int main(int argc, char** argv) {
 	struct DHT_action akv = {.action = 0, .key = 12345, .value = 54321};
+	// struct addressInfo trackerServerInfo;
+	// trackerServerInfo.IPAddress = {127, 0, 0, 1};
+	// https://stackoverflow.com/questions/54512286/how-to-join-an-int-array-to-string-in-c-separated-by-a-dot
+	// char buffer[99];
+	// sprintf(buffer, "%d.%d.%d.%d", trackerServerInfo.IPAddress[0], trackerServerInfo.IPAddress[1], trackerServerInfo.IPAddress[2], trackerServerInfo.IPAddress[3]);
+	// std::string ip_address(buffer);
 
 	std::string trackerServerIP = "127.0.0.1";
 	std::string trackerServerPort = "3000";
 
-	
+
 	
 	// FIRST CONNECT TO TRACKER SERVER TO GET PORT(S):
 
@@ -101,6 +107,8 @@ int main(int argc, char** argv) {
 
 	printf("action: %d, %d \nkey: %d, %d \nvalue: %d, %d \n\n", akv.action, received.action, akv.key, received.key, akv.value, received.value); // testing to make sure it returns what i expect
 	printf("numServers: %d\n", getNumServers());
+
+
 
 	return 0;
 }

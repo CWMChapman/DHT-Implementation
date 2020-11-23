@@ -11,38 +11,41 @@
 using asio::ip::tcp;
 
 void server(int port) {
-  //  std::cout << "Port: " << port << std::endl;
-  asio::io_context io_context;
-  tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
+	//  std::cout << "Port: " << port << std::endl;
+	asio::io_context io_context;
+	tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
 
-  // Use this bakery to handle queries from the client
-  // Bakery bakery = text_deserializer("../data/bakery.txt");
+	// Use this bakery to handle queries from the client
+	// Bakery bakery = text_deserializer("../data/bakery.txt");
 
-  uint16_t counter = 0;
+	uint16_t counter = 0;
 
-  while (true) {
-    // Wait for client
-    // std::cout << "Blocked for read" << std::endl;
-    tcp::socket socket(io_context);
-    acceptor.accept(socket);
+	while (true) {
+		// Wait for client
+		// std::cout << "Blocked for read" << std::endl;
+		tcp::socket socket(io_context);
+		acceptor.accept(socket);
 
-    std::array<uint8_t, 9> server_message;
-    asio::error_code error;
-    size_t len = socket.read_some(asio::buffer(server_message), error);
+		std::array<uint8_t, 12> client_message;
+		asio::error_code error;
+		size_t len = socket.read_some(asio::buffer(client_message), error);
 
-    printf("SERVER PORT: %d", port);
+		printf("\nSERVER PORT: %d\n", port);
 
-    int action = decode_9byte(&server_message, 0);
-    int key = decode_9byte(&server_message, 1);
-    int value = decode_9byte(&server_message, 2);
+		struct DHT_action message;
+		memcpy(&message, &client_message, sizeof(DHT_action));
+		int action = message.action;
+		int key = message.key;
+		int value = message.value;
+		printf("action: %d, key: %d, value: %d\n", action, key, value);
 
 
-    // for now, just write back the same information to the client...
-    encode_9byte(&server_message, action, key, value);
+		// for now, just write back the same information to the client...
+		memcpy(&client_message, &message, sizeof(DHT_action));
+		asio::write(socket, asio::buffer(client_message), error);
+	}
 
-    asio::write(socket, asio::buffer(server_message), error);
-  }
-  return;
+	return;
 }
 
 int main() {

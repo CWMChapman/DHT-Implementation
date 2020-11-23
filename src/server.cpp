@@ -15,9 +15,6 @@ void server(int port) {
 	asio::io_context io_context;
 	tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
 
-	// Use this bakery to handle queries from the client
-	// Bakery bakery = text_deserializer("../data/bakery.txt");
-
 	uint16_t counter = 0;
 
 	while (true) {
@@ -39,9 +36,11 @@ void server(int port) {
 		int value = message.value;
 		printf("action: %d, key: %d, value: %d\n", action, key, value);
 
+		struct DHT_action return_message = {.action = 0, .key = 0, .value = 0};
+
 
 		// for now, just write back the same information to the client...
-		memcpy(&client_message, &message, sizeof(DHT_action));
+		memcpy(&client_message, &return_message, sizeof(DHT_action));
 		asio::write(socket, asio::buffer(client_message), error);
 	}
 

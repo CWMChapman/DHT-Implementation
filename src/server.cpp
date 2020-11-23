@@ -30,7 +30,7 @@ void server(int port) {
     asio::error_code error;
     size_t len = socket.read_some(asio::buffer(server_message), error);
 
-    printf("SERVER PORT: %d", port + 3001);
+    printf("SERVER PORT: %d", port);
 
     int action = decode_9byte(&server_message, 0);
     int key = decode_9byte(&server_message, 1);
@@ -49,7 +49,7 @@ int main() {
   std::vector<std::thread> servers;
 
   int firstServer = 3001;
-  int maxServer = firstServer + getNumServers();
+  int maxServer = firstServer + getNumServers() - 1; // WHY DOES IT NEED TO BE MINUS 1???
   printf("Ports open on %d through %d.\n", firstServer, maxServer);
   for (int i = firstServer; i < maxServer; ++i)
     servers.push_back(std::thread(server, i)); // t(function, a0, a1, ...)

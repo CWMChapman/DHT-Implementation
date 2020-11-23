@@ -43,7 +43,6 @@ for (int i = 0; i < 100; ++i) {
 /* ***     PORT 3000     *** */
 
 int main() {
-    
     asio::io_context io_context;
     tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3000));
 
@@ -54,17 +53,31 @@ int main() {
 
     while (true) {
         // Wait for client
-        std::cout << "Blocked for read" << std::endl;
+        // std::cout << "Blocked for read" << std::endl;
         tcp::socket socket(io_context);
         acceptor.accept(socket);
 
         std::array<uint8_t, 4> buf;
         asio::error_code error;
         size_t len = socket.read_some(asio::buffer(buf), error);
-
+        
+        int numServers = getNumServers();
         int key = main_server_decode(&buf);
-        int port = hashToServerPort(key, getNumServers());
-        printf("MAIN SERVER PORT: %d\n", port);
+        int port = hashToServerPort(key, numServers);
+
+        int neighborPort1 = port - 1; 
+        int neighborPort2 = port + 1;
+
+        if (port - 1 == 3001 - 1) {
+            neighborPort1 = 3001 + numServers - 1;
+        }
+        if (port + 1 == numServers + 3001) {
+            neighborPort2 = 3001;
+        }
+
+        printf("port: %d, neighborPort1: %d, neighborPort2: %d\n", port, neighborPort1, neighborPort2);
+
+
         main_server_encode(&buf, port);
 
 

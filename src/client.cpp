@@ -43,10 +43,10 @@ int main(int argc, char** argv) {
 	// int action = std::stoi(argv[1]);
 	// int key = std::stoi(argv[2]);
 	// int value = std::stoi(argv[3]);
-	
-	int action = 0; 
-	int key = 12345; 
-	int value = 54321; 	
+	for (int i = 0; i < 10; ++i) {
+		int action = 0; 
+		int key = i; 
+		int value = 54321;
 	
 	// FIRST CONNECT TO TRACKER SERVER TO GET PORT(S):
 	asio::io_context io_context;
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 	asio::write(socket, asio::buffer(tracker_message), error);
 
 	size_t len = socket.read_some(asio::buffer(tracker_message), error);
-	int port = main_server_decode(&tracker_message) + 3001;
+	int port = main_server_decode(&tracker_message);
 	std::cout << "key: " << key << ", port: " << port << std::endl;
 
 
@@ -86,7 +86,13 @@ int main(int argc, char** argv) {
 	int k = decode_9byte(&server_message, 1);
 	int v = decode_9byte(&server_message, 2);
 	printf("action: %d, %d \nkey: %d, %d \nvalue: %d, %d \n\n", action, a, key, k, value, v); // testing to make sure it returns what i expect
+	}
 
+	for (int i = 50; i < 150; ++i) {
+		int port = hashToServerPort(i, getNumServers());
+		printf("port[%d] = %d\n", i, port);
+	}
+	printf("numServers: %d\n", getNumServers());
 
 	return 0;
 }

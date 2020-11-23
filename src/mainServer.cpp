@@ -69,7 +69,8 @@ int main() {
         size_t len = socket.read_some(asio::buffer(buf), error);
         
         int numServers = getNumServers();
-        int key = main_server_decode(&buf);
+        int key;
+        memcpy(&key, &buf, sizeof(int));
         int port = hashToServerPort(key, numServers);
 
         int neighborPort1 = port - 1; 
@@ -84,23 +85,7 @@ int main() {
 
         printf("port: %d, neighborPort1: %d, neighborPort2: %d\n", port, neighborPort1, neighborPort2);
 
-
-        main_server_encode(&buf, port);
-
-
-        // Example of error handling
-        // if (error != asio::error::eof)
-        //   throw asio::system_error(error);
-
-        // // Add x to counter
-        // auto x = uint8_t(buf[0]);
-        // counter += x;
-        // std::cout << +x << " " << counter << std::endl;
-
-        // buf.fill(0);
-
-        // std::memcpy(&buf, &counter, sizeof(uint16_t));
-
+        memcpy(&buf, &port, sizeof(int));
         asio::write(socket, asio::buffer(buf), error);
     }
 

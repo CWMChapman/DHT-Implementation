@@ -42,6 +42,9 @@ std::cout << "After: \t\tAction: " << action << ", Key: " << key << ", Value: " 
 /* TODO
 Set it up such that the main server will also return 
 
+	// int action = std::stoi(argv[1]);
+	// int key = std::stoi(argv[2]);
+	// int value = std::stoi(argv[3]);
 */
 
 
@@ -49,59 +52,63 @@ Set it up such that the main server will also return
 
 
 int main(int argc, char** argv) {
-	// int action = std::stoi(argv[1]);
-	// int key = std::stoi(argv[2]);
-	// int value = std::stoi(argv[3]);
-	for (int i = 0; i < 10; ++i) {
-		int action = 0; 
-		int key = i; 
-		int value = 54321;
+	struct DHT_action akv = {.action = 0, .key = 12345, .value = 54321};
+	// struct addressInfo trackerServerInfo;
+	// trackerServerInfo.IPAddress = {127, 0, 0, 1};
+	// https://stackoverflow.com/questions/54512286/how-to-join-an-int-array-to-string-in-c-separated-by-a-dot
+	// char buffer[99];
+	// sprintf(buffer, "%d.%d.%d.%d", trackerServerInfo.IPAddress[0], trackerServerInfo.IPAddress[1], trackerServerInfo.IPAddress[2], trackerServerInfo.IPAddress[3]);
+	// std::string ip_address(buffer);
+
+	std::string trackerServerIP = "127.0.0.1";
+	std::string trackerServerPort = "3000";
+
+
 	
 	// FIRST CONNECT TO TRACKER SERVER TO GET PORT(S):
+
 	asio::io_context io_context;
 	tcp::resolver resolver(io_context);
-	tcp::resolver::results_type endpoints = resolver.resolve("127.0.0.1", "3000");
+	tcp::resolver::results_type endpoints = resolver.resolve(trackerServerIP, trackerServerPort);
 
 	tcp::socket socket(io_context);
 	asio::connect(socket, endpoints);
 
 	asio::error_code error;
 	std::array<uint8_t, 4> tracker_message;
+	memcpy(&tracker_message, &akv.key, sizeof(int));
 
-	main_server_encode(&tracker_message, key);
 	asio::write(socket, asio::buffer(tracker_message), error);
 
 	size_t len = socket.read_some(asio::buffer(tracker_message), error);
-	int port = main_server_decode(&tracker_message);
-	std::cout << "key: " << key << ", port: " << port << std::endl;
+	int port;
+	memcpy(&port, &tracker_message, sizeof(int));
+	std::cout << "key: " << akv.key << ", port: " << port << std::endl;
+
+
+
+
 
 
 	// NOW THAT WE HAVE THE PORT, CONNECT TO SERVER
-	// asio::io_context io_context;
-	// tcp::resolver resolver(io_context);
+
 	endpoints = resolver.resolve("127.0.0.1", std::to_string(port));
 
-	// tcp::socket socket(io_context);
 	asio::connect(socket, endpoints);
 
-	// asio::error_code error;
-	std::array<uint8_t, 9> server_message;
+	std::array<uint8_t, 12> server_message;
 	
-	encode_9byte(&server_message, action, key, value);
+	memcpy(&server_message, &akv, sizeof(DHT_action));
 	asio::write(socket, asio::buffer(server_message), error);
 
+	struct DHT_action received;
 	len = socket.read_some(asio::buffer(server_message), error);
-	int a = decode_9byte(&server_message, 0);
-	int k = decode_9byte(&server_message, 1);
-	int v = decode_9byte(&server_message, 2);
-	printf("action: %d, %d \nkey: %d, %d \nvalue: %d, %d \n\n", action, a, key, k, value, v); // testing to make sure it returns what i expect
-	}
+	memcpy(&received, &server_message, sizeof(DHT_action));
 
-	for (int i = 50; i < 150; ++i) {
-		int port = hashToServerPort(i, getNumServers());
-		printf("port[%d] = %d\n", i, port);
-	}
+	printf("action: %d, %d \nkey: %d, %d \nvalue: %d, %d \n\n", akv.action, received.action, akv.key, received.key, akv.value, received.value); // testing to make sure it returns what i expect
 	printf("numServers: %d\n", getNumServers());
+
+
 
 	return 0;
 }

@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <thread>
 
+#include "../include/functions.hpp"
+
 using asio::ip::tcp;
 
 void server(int port) {
@@ -20,37 +22,36 @@ void server(int port) {
 
   while (true) {
     // Wait for client
-    std::cout << "Blocked for read" << std::endl;
+    // std::cout << "Blocked for read" << std::endl;
     tcp::socket socket(io_context);
     acceptor.accept(socket);
 
-    std::array<uint8_t, 3> buf;
+    std::array<uint8_t, 9> server_message;
     asio::error_code error;
-    size_t len = socket.read_some(asio::buffer(buf), error);
+    size_t len = socket.read_some(asio::buffer(server_message), error);
 
-    // Example of error handling
-    // if (error != asio::error::eof)
-    //   throw asio::system_error(error);
+    printf("SERVER PORT: %d", port);
 
-    // Add x to counter
-    auto x = uint8_t(buf[0]);
-    counter += x;
-    std::cout << +x << " " << counter << std::endl;
+    int action = decode_9byte(&server_message, 0);
+    int key = decode_9byte(&server_message, 1);
+    int value = decode_9byte(&server_message, 2);
 
-    buf.fill(0);
 
-    std::memcpy(&buf, &counter, sizeof(uint16_t));
+    // for now, just write back the same information to the client...
+    encode_9byte(&server_message, action, key, value);
 
-    asio::write(socket, asio::buffer(buf), error);
+    asio::write(socket, asio::buffer(server_message), error);
   }
   return;
 }
 
 int main() {
-  // int port = 3003;
   std::vector<std::thread> servers;
 
-  for (int i = 3001; i < 3004; ++i)
+  int firstServer = 3001;
+  int maxServer = firstServer + getNumServers() - 1; // WHY DOES IT NEED TO BE MINUS 1???
+  printf("Ports open on %d through %d.\n", firstServer, maxServer);
+  for (int i = firstServer; i < maxServer; ++i)
     servers.push_back(std::thread(server, i)); // t(function, a0, a1, ...)
   for (auto &server : servers) 
     server.join();

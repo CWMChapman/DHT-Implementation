@@ -5,9 +5,11 @@
 #include <string>
 #include <unordered_map>
 
+#include "../include/functions.hpp"
+
 using asio::ip::tcp;
 
-/* The Main Server 
+/* The Tracker Server (Main Server)
 
 This server acts as a tracker server in a traditional P2P network. The  client first communicates with the tacker server 
 to determine which server in the DHT network it needs to communicate with.
@@ -22,43 +24,22 @@ An array of 4 elements, each element is a uint8_t (8 bits).
 std::vector<int> availableServers;
 int activeServers;
 
-int main_server_decode(std::array<uint8_t, 4>* message) {
-    int array_index = 0; // remember that the array is of lenght 4, not 4 * 8.
-    int bit_index = 0;   // which bit within each element of the array we are refering to
-    int ret = 0;         // what we will return
+/* EXAMPLE ENCODE DECODE USAGE
+std::array<uint8_t, 4> message;
+main_server_encode(&message, 3001);
+int port = main_server_decode(&message);
+*/
 
-    for (int i = 0; i < 32; ++i) {
-        ret |= (((*message)[array_index] >> bit_index) & 1) << (32 - i);  
+/* EXAMPLE hashToServerPort USAGE
+int key = 5;
+int numServers = 10;
+int port = hashToServerPort(key, numServers);
 
-        if ((i + 1) % 8 == 0) {
-             ++array_index;
-            bit_index = 0;
-        }
-        else {
-            ++bit_index;
-        }
-    }
-    return ret;
+
+for (int i = 0; i < 100; ++i) {
+    printf("i: %d, port: %d\n", i, hashToServerPort(i, 10));
 }
-
-void main_server_encode(std::array<uint8_t, 4>* message, int port) {
-    int array_index = 0; // remember that the array is of lenght 4, not 4 * 8.
-    int bit_index = 0;   // which bit within each element of the array we are refering to
-
-    for (int i = 0; i < 32; ++i) {
-        (*message)[array_index] &= ~(1 << bit_index);
-        (*message)[array_index] |= ((port >> (32-i)) & 1) << bit_index;
-
-        if ((i + 1) % 8 == 0) {
-            ++array_index;
-            bit_index = 0;
-        }
-        else {
-            ++bit_index;
-        }
-    }
-    return;
-}
+*/
 
 void rehash(){
     activeServers++;
@@ -66,27 +47,9 @@ void rehash(){
     //Need a way to get all items from each server
 }
 
-int proxy(std::array<uint8_t, 4>* message){
-    int server; //index the pos of bits that are the given key
-    std::cout << "Send to server " << server % activeServers << std::endl;
-    return server % activeServers;
-} 
+/* ***     PORT 3000     *** */
 
 int main() {
-  
-    for(int i = 1; i < 4; i++){
-        availableServers.push_back(3000 + i);
-    }
-
-    activeServers = 2;
-
-    std::array<uint8_t, 4> message;
-    
-    main_server_encode(&message, 3001);
-    int port = main_server_decode(&message);
-    std::cout << "The port is: " << port << std::endl;
-
-
     asio::io_context io_context;
     tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3000));
 
@@ -97,26 +60,46 @@ int main() {
 
     while (true) {
         // Wait for client
-        std::cout << "Blocked for read" << std::endl;
+        // std::cout << "Blocked for read" << std::endl;
         tcp::socket socket(io_context);
         acceptor.accept(socket);
 
-        std::array<uint8_t, 3> buf;
+        std::array<uint8_t, 4> buf;
         asio::error_code error;
         size_t len = socket.read_some(asio::buffer(buf), error);
+        
+        int numServers = getNumServers();
+        int key = main_server_decode(&buf);
+        int port = hashToServerPort(key, numServers);
+
+        int neighborPort1 = port - 1; 
+        int neighborPort2 = port + 1;
+
+        if (port - 1 == 3001 - 1) {
+            neighborPort1 = 3001 + numServers - 1;
+        }
+        if (port + 1 == numServers + 3001) {
+            neighborPort2 = 3001;
+        }
+
+        printf("port: %d, neighborPort1: %d, neighborPort2: %d\n", port, neighborPort1, neighborPort2);
+
+
+        main_server_encode(&buf, port);
+
 
         // Example of error handling
         // if (error != asio::error::eof)
         //   throw asio::system_error(error);
 
-        // Add x to counter
-        auto x = uint8_t(buf[0]);
-        counter += x;
-        std::cout << +x << " " << counter << std::endl;
+        // // Add x to counter
+        // auto x = uint8_t(buf[0]);
+        // counter += x;
+        // std::cout << +x << " " << counter << std::endl;
 
-        buf.fill(0);
+        // buf.fill(0);
 
-        std::memcpy(&buf, &counter, sizeof(uint16_t));
+        // std::memcpy(&buf, &counter, sizeof(uint16_t));
 
         asio::write(socket, asio::buffer(buf), error);
     }

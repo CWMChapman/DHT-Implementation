@@ -36,3 +36,9 @@ build/
 
 # Ignore DS STORE!!!!!
 .DS_Store
+
+# Ignore third_party/
+third_party/
+
+# Ignore .vscode
+.vscode/

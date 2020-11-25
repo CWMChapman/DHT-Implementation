@@ -11,6 +11,8 @@
 using asio::ip::tcp;
 
 void server(int port) {
+  std::unordered_map<int, int> serverMap;
+
 	//  std::cout << "Port: " << port << std::endl;
 	asio::io_context io_context;
 	tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
@@ -36,6 +38,41 @@ void server(int port) {
 		int value = message.value;
 		printf("action: %d, key: %d, value: %d\n", action, key, value);
 
+    //adding/finding/deleting keys from map and letting us know if the actions were completed or not
+    if(action == 0){
+      serverMap[value] = key;
+
+      bool success = checkChanges(action, key, value, serverMap);
+      
+      if(success == true){
+        std::cout << "Data added succesfully" << std::endl;
+      }
+      else{
+        std::cout << "Data not added" << std::endl;
+      }
+    }
+    else if(action == 1){
+      auto find = serverMap.find(key);
+      if (find == serverMap.end()) 
+        std::cout << key << " not found\n"; 
+      else{
+        std::cout << "Value is: " << find->second << std::endl;
+      }
+    }
+    else if(action == 2){
+      serverMap.erase(key);
+
+      bool success = checkChanges(action, key, value, serverMap);
+      
+      if(success == false){
+        std::cout << "Data removed succesfully" << std::endl;
+      }
+      else{
+        std::cout << "Data not removed" << std::endl;
+      }
+
+    }
+
 		struct DHT_action return_message = {.action = 0, .key = 0, .value = 0};
 
 
@@ -45,6 +82,27 @@ void server(int port) {
 	}
 
 	return;
+}
+
+//Function called to check if changes were done correctly to the map
+
+bool checkChanges(int action, int key, int value, std::unordered_map<int, int> serverMap){
+  auto find = serverMap.find(key);
+
+  if(action == 0){
+    if (find == serverMap.end()) 
+      return false; 
+    else{
+      return true;
+    }
+  }
+  else if(action == 2){
+    if (find == serverMap.end()) 
+      return true; 
+    else{
+      return false;
+    }
+  }
 }
 
 int main() {
@@ -61,27 +119,3 @@ int main() {
 
   return 0;
 }
-
-//Where will we be processing all of the work??
-
-//We are gonna need certain things for all these servers
-  //Need to create an unordered map
-    // unordered_map<int, int> serverMap;
-
-  //if the action is to create a key/val 
-    /*void createKey( KEY, VALUE ){
-      serverMap[VALUE]= KEY
-    }*/
-
-  //if the action is to find a key
-    /*int find( KEY ){
-      if (serverMap.find(key) == serverMap.end()) 
-        cout << key << " not found\n"; 
-      else
-        return key
-    }*/ 
-
-  //if the action is to delete a key
-    /*void delete( KEY ){
-      serverMap.erase(KEY);
-    }*/  //set key/val

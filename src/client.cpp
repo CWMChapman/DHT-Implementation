@@ -17,13 +17,6 @@ M=01: Lookup
 M=10: Delete
 M=11: Do Nothing. For later, maybe we do this to reorganize the servers keys and redistribute things in case a server is added or removed.
 
-decode sections
-0 = get message type
-
-1 = get key
-
-2 = get value
-
 */
 
 /* EXAMPLE ENCODE DECODE USAGE
@@ -52,16 +45,8 @@ Set it up such that the main server will also return
 
 
 int main(int argc, char** argv) {
-	struct DHT_action akv = {.action = 0, .key = 12345, .value = 54321};
-	// struct addressInfo trackerServerInfo;
-	// trackerServerInfo.IPAddress = {127, 0, 0, 1};
-	// https://stackoverflow.com/questions/54512286/how-to-join-an-int-array-to-string-in-c-separated-by-a-dot
-	// char buffer[99];
-	// sprintf(buffer, "%d.%d.%d.%d", trackerServerInfo.IPAddress[0], trackerServerInfo.IPAddress[1], trackerServerInfo.IPAddress[2], trackerServerInfo.IPAddress[3]);
-	// std::string ip_address(buffer);
-
-	std::string trackerServerIP = "127.0.0.1";
-	std::string trackerServerPort = "3000";
+	struct DHT_action akv = { .action = 0, .key = 12345, .value = 54321 };
+	struct addressInfo trackerServerInfo = { .IPAddress = {127, 0, 0, 1}, .port = 3000 };
 
 
 	
@@ -69,21 +54,25 @@ int main(int argc, char** argv) {
 
 	asio::io_context io_context;
 	tcp::resolver resolver(io_context);
-	tcp::resolver::results_type endpoints = resolver.resolve(trackerServerIP, trackerServerPort);
+	tcp::resolver::results_type endpoints = resolver.resolve(ip_tostr(trackerServerInfo.IPAddress), std::to_string(trackerServerInfo.port));
 
 	tcp::socket socket(io_context);
 	asio::connect(socket, endpoints);
 
 	asio::error_code error;
-	std::array<uint8_t, 4> tracker_message;
+	std::array<uint8_t, 4> tracker_message; // we're just sending the key to the tracker
 	memcpy(&tracker_message, &akv.key, sizeof(int));
 
 	asio::write(socket, asio::buffer(tracker_message), error);
 
-	size_t len = socket.read_some(asio::buffer(tracker_message), error);
-	int port;
-	memcpy(&port, &tracker_message, sizeof(int));
-	std::cout << "key: " << akv.key << ", port: " << port << std::endl;
+	std::array<uint8_t, 18> return_tracker_message; // we're receiving an array of 3 addressInfo structs
+	size_t len = socket.read_some(asio::buffer(return_tracker_message), error);
+	std::array<addressInfo, 3> response;
+	memcpy(&response, &return_tracker_message, 3*sizeof(addressInfo));
+	struct addressInfo server = response[0];
+	struct addressInfo neighbor1 = response[1];
+	struct addressInfo neighbor2 = response[2];
+	// std::cout << "key: " << akv.key << ", ip_address: " << ip_tostr(server.IPAddress) << ", port: " << server.port << std::endl;
 
 
 
@@ -92,7 +81,7 @@ int main(int argc, char** argv) {
 
 	// NOW THAT WE HAVE THE PORT, CONNECT TO SERVER
 
-	endpoints = resolver.resolve("127.0.0.1", std::to_string(port));
+	endpoints = resolver.resolve("127.0.0.1", std::to_string(server.port));
 
 	asio::connect(socket, endpoints);
 

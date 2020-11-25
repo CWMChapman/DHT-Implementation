@@ -71,10 +71,10 @@ int main() {
         int numServers = getNumServers();
         int key;
         memcpy(&key, &buf, sizeof(int));
-        int port = hashToServerPort(key, numServers);
+        short port = hashToServerPort(key, numServers);
 
-        int neighborPort1 = port - 1; 
-        int neighborPort2 = port + 1;
+        short neighborPort1 = port - 1; 
+        short neighborPort2 = port + 1;
 
         if (port - 1 == 3001 - 1) {
             neighborPort1 = 3001 + numServers - 1;
@@ -85,8 +85,15 @@ int main() {
 
         printf("port: %d, neighborPort1: %d, neighborPort2: %d\n", port, neighborPort1, neighborPort2);
 
-        memcpy(&buf, &port, sizeof(int));
-        asio::write(socket, asio::buffer(buf), error);
+        struct addressInfo serverAddress = { .IPAddress = {127, 0, 0, 1}, .port = port };
+        struct addressInfo neighborAddress1 = { .IPAddress = {127, 0, 0, 1}, .port = neighborPort1 };
+        struct addressInfo neighborAddress2 = { .IPAddress = {127, 0, 0, 1}, .port = neighborPort2 };
+
+        std::array<addressInfo,3> response = {serverAddress, neighborAddress1, neighborAddress2};
+
+        std::array<uint8_t, 18> responseMessage;
+        memcpy(&responseMessage, &response, 3*sizeof(addressInfo));
+        asio::write(socket, asio::buffer(responseMessage), error);
     }
 
     //return 0;

@@ -25,6 +25,11 @@ short hashToServerPort(int key, int numServers) {
 	return port;
 }
 
+// void initDHT() {
+// 	// initializes the DHT with data
+
+// }
+
 
 
 

@@ -23,17 +23,41 @@ M=11: Do Nothing. For later, maybe we do this to reorganize the servers keys and
 
 using asio::ip::tcp;
 
-void server(int port) {
+void connectToDHT(addressInfo serverInfo, short action) {
+	addressInfo trackerServerInfo = { .IPAddress = {127, 0, 0, 1}, .port = 3001 };
+	serverAction sA = {.action = action, .info = serverInfo};
+	// action = 0 -> join DHT
+	// action = 1 -> leave DHT
+
+	asio::io_context io_context;
+	tcp::resolver resolver(io_context);
+	tcp::resolver::results_type endpoints = resolver.resolve(ip_tostr(trackerServerInfo.IPAddress), std::to_string(trackerServerInfo.port));
+
+	tcp::socket socket(io_context);
+	asio::connect(socket, endpoints);
+
+	asio::error_code error;
+	std::array<uint8_t, 8> server_message;
+	memcpy(&server_message, &sA, sizeof(serverAction));
+
+	asio::write(socket, asio::buffer(server_message), error);
+	
+	// no expected response
+	
+	return;
+}
+
+void server(addressInfo serverInfo) {
+	connectToDHT(serverInfo, 0);
 	std::unordered_map<int, int> serverMap;
 
 	asio::io_context io_context;
-	tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), port));
+	tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), serverInfo.port));
 
 	uint16_t counter = 0;
 
 	while (true) {
-		// Wait for client
-		// std::cout << "Blocked for read" << std::endl;
+		// Wait for client (Blocked for read)
 		tcp::socket socket(io_context);
 		acceptor.accept(socket);
 
@@ -41,7 +65,7 @@ void server(int port) {
 		asio::error_code error;
 		size_t len = socket.read_some(asio::buffer(client_message), error);
 
-		printf("\nSERVER PORT: %d\n", port);
+		printf("\nSERVER PORT: %d\n", serverInfo.port);
 
 		struct DHT_action message;
 		memcpy(&message, &client_message, sizeof(DHT_action));
@@ -72,34 +96,15 @@ void server(int port) {
 	return;
 }
 
-// Function called to check if changes were done correctly to the map
-// bool checkChanges(int action, int key, int value, std::unordered_map<int, int> serverMap){
-// 	auto find = serverMap.find(key);
-
-// 	if(action == 0){
-// 		if (find == serverMap.end()) 
-// 			return false; 
-// 		else{
-// 			return true;
-// 		}
-// 	}
-// 	else if(action == 2){
-// 		if (find == serverMap.end()) 
-// 			return true; 
-// 		else{
-// 			return false;
-// 		}
-// 	}
-// }
-
 int main() {
 	std::vector<std::thread> servers;
 
-	int firstServer = 3001;
-	int maxServer = firstServer + getNumServers() - 1; // WHY DOES IT NEED TO BE MINUS 1???
-	printf("Ports open on %d through %d.\n", firstServer, maxServer);
-	for (int i = firstServer; i < maxServer; ++i)
-		servers.push_back(std::thread(server, i)); // t(function, a0, a1, ...)
+	int numServers = getNumServers();
+	std::vector<addressInfo> serverAddresses = setUpServerAddresses(); // see functions.cpp for this functions
+
+	std::cout << "Ports open on " << serverAddresses[0].port << " through " << serverAddresses[numServers-1].port << "." << std::endl;
+	for (int i = 0; i < numServers; ++i)
+		servers.push_back(std::thread(server, serverAddresses[i])); // t(function, a0, a1, ...)
 	for (auto &server : servers) 
 		server.join();
 

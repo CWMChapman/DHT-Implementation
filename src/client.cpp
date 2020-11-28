@@ -45,8 +45,8 @@ Set it up such that the main server will also return
 
 
 int main(int argc, char** argv) {
-	struct DHT_action akv = { .action = 0, .key = 12345, .value = 54321 };
-	struct addressInfo trackerServerInfo = { .IPAddress = {127, 0, 0, 1}, .port = 3000 };
+	DHT_action akv = { .action = 0, .key = 12345, .value = 54321 };
+	addressInfo trackerServerInfo = { .IPAddress = {127, 0, 0, 1}, .port = 3000 };
 
 
 	

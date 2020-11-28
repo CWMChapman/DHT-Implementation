@@ -3,7 +3,9 @@
 #include <ctime>
 #include <iostream>
 #include <string>
-#include <unordered_map>
+#include <thread>
+#include <algorithm>
+// #include <unordered_map>
 
 #include "../include/functions.hpp"
 
@@ -16,47 +18,88 @@ to determine which server in the DHT network it needs to communicate with.
 
 The message format will be a 4 byte message that contains the key of type int (4 byte, 32 bits).
 
-An array of 4 elements, each element is a uint8_t (8 bits).
 
-[31 ... 0], such that the most significant bit is the on the left.
+Tracker Server Port is 3000
+Port 3001 is open waiting for servers to message about joining or quiting 
+
+
+
 
 */
-std::vector<int> availableServers;
-int activeServers;
 
-/* EXAMPLE ENCODE DECODE USAGE
-std::array<uint8_t, 4> message;
-main_server_encode(&message, 3001);
-int port = main_server_decode(&message);
-*/
+// std::vector<int> availableServers;
+// int activeServers;
 
-/* EXAMPLE hashToServerPort USAGE
-int key = 5;
-int numServers = 10;
-int port = hashToServerPort(key, numServers);
+// void rehash(){
+//     activeServers++;
+//     //Get all keys from all servers and rehash them with new value
+//     //Need a way to get all items from each server
+// }
 
+std::vector<addressInfo> activeServers;
 
-for (int i = 0; i < 100; ++i) {
-    printf("i: %d, port: %d\n", i, hashToServerPort(i, 10));
+void printActiveServers() {
+    if (activeServers.size() > 0) {
+        std::cout << "ACTIVE SERVERS: " << std::endl;
+        std::cout << "=============================" << std::endl;
+        std::cout << "Server\t|    Address" << std::endl;
+
+            for(int i=0; i < activeServers.size(); i++){
+                std::cout << "   " << i << "\t|    " << ip_tostr(activeServers.at(i).IPAddress) << ":" << activeServers.at(i).port << std::endl;
+            }
+
+        std::cout << "=============================" << std::endl;
+    }
+    else
+        std::cout << "NO ACTIVE SERVERS" << std::endl;
+
 }
-*/
 
-void rehash(){
-    activeServers++;
-    //Get all keys from all servers and rehash them with new value
-    //Need a way to get all items from each server
+void listenForServers() {
+    asio::io_context io_context;
+    tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3001));
+
+    while (true) {
+        tcp::socket socket(io_context);
+        acceptor.accept(socket);
+
+        std::array<uint8_t, 8> buf;
+        asio::error_code error;
+        size_t len = socket.read_some(asio::buffer(buf), error);
+        
+        serverAction message;
+        memcpy(&message, &buf, sizeof(serverAction));
+        // short action = message.action;
+        // std::cout << message.action << std::endl;
+        
+        if (message.action == 0)
+            activeServers.push_back(message.info);
+        else{
+            // havent tested this yet
+            int index = 0;
+            for (int i = 0; i < activeServers.size(); i++) {
+                if (memcmp(&activeServers[i], &message.info, sizeof(addressInfo))) {
+                    index = i;
+                    break;
+                }
+            }
+            activeServers.erase(activeServers.begin() + index, activeServers.end()); 
+        }
+        if (activeServers.size() >= 10)
+            printActiveServers();
+    }
+    
+    return;
 }
+
 
 /* ***     PORT 3000     *** */
 
 int main() {
+    std::thread serverListenerThread (listenForServers);
+
     asio::io_context io_context;
     tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3000));
-
-    // Use this bakery to handle queries from the client
-    // Bakery bakery = text_deserializer("../data/bakery.txt");
-
-    uint16_t counter = 0;
 
     while (true) {
         // Wait for client

@@ -5,7 +5,6 @@
 #include <string>
 #include <thread>
 #include <algorithm>
-// #include <unordered_map>
 
 #include "../include/functions.hpp"
 
@@ -22,39 +21,58 @@ The message format will be a 4 byte message that contains the key of type int (4
 Tracker Server Port is 3000
 Port 3001 is open waiting for servers to message about joining or quiting 
 
-
-
-
 */
 
-// std::vector<int> availableServers;
-// int activeServers;
-
-// void rehash(){
+// void rehash() { 
 //     activeServers++;
 //     //Get all keys from all servers and rehash them with new value
 //     //Need a way to get all items from each server
 // }
 
+
+void initDHT() {
+	// initializes the DHT servers with data
+	printf("INITIALIZING DHT\n");
+	
+	return;
+}
+
+
+// bool serverStatus = false; // True means its been initialized with data
+
+
 std::vector<addressInfo> activeServers;
 
+int getNumActiveServers() {
+    return activeServers.size();
+}
 void printActiveServers() {
     if (activeServers.size() > 0) {
         std::cout << "ACTIVE SERVERS: " << std::endl;
         std::cout << "=============================" << std::endl;
         std::cout << "Server\t|    Address" << std::endl;
-
-            for(int i=0; i < activeServers.size(); i++){
+            for(int i=0; i < activeServers.size(); i++)
                 std::cout << "   " << i << "\t|    " << ip_tostr(activeServers.at(i).IPAddress) << ":" << activeServers.at(i).port << std::endl;
-            }
-
         std::cout << "=============================" << std::endl;
     }
     else
         std::cout << "NO ACTIVE SERVERS" << std::endl;
-
+    return;
 }
-
+void addServer(addressInfo serverInfo) {
+    activeServers.push_back(serverInfo);
+}
+void deleteServer(addressInfo serverInfo) {
+    // havent tested this yet
+    int index = 0;
+    for (int i = 0; i < activeServers.size(); i++) {
+        if (memcmp(&activeServers[i], &serverInfo, sizeof(addressInfo))) {
+            index = i;
+            break;
+        }
+    }
+    activeServers.erase(activeServers.begin() + index, activeServers.end()); 
+}
 void listenForServers() {
     asio::io_context io_context;
     tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3001));
@@ -73,17 +91,9 @@ void listenForServers() {
         // std::cout << message.action << std::endl;
         
         if (message.action == 0)
-            activeServers.push_back(message.info);
+            addServer(message.info);
         else{
-            // havent tested this yet
-            int index = 0;
-            for (int i = 0; i < activeServers.size(); i++) {
-                if (memcmp(&activeServers[i], &message.info, sizeof(addressInfo))) {
-                    index = i;
-                    break;
-                }
-            }
-            activeServers.erase(activeServers.begin() + index, activeServers.end()); 
+            deleteServer(message.info);
         }
         if (activeServers.size() >= 10)
             printActiveServers();
@@ -91,15 +101,50 @@ void listenForServers() {
     
     return;
 }
+addressInfo getServer(int key) {
+    return activeServers[hash(key) % getNumActiveServers()];
+}
+addressInfo getNeighborServer1(int key) {
+    int numActiveServers = getNumActiveServers();
+    int index = (hash(key) % numActiveServers);
+    if (index == numActiveServers-1)
+        index = 0;
+    else
+        index++;
+    return activeServers[index];
+}
+addressInfo getNeighborServer2(int key) {
+    int numActiveServers = getNumActiveServers();
+    int index = (hash(key) % numActiveServers);
+    if (index == 0)
+        index = numActiveServers - 1;
+    else
+        index--;
+    return activeServers[index];
+}
+
+/* 
+1. get the that is leaving
+2. remove from the activeServers vector
+3. hash all of the entries of the server that's leaving
+4. 
+
+
+
+*/
+
+
+
 
 
 /* ***     PORT 3000     *** */
-
 int main() {
     std::thread serverListenerThread (listenForServers);
 
     asio::io_context io_context;
     tcp::acceptor acceptor(io_context, tcp::endpoint(tcp::v4(), 3000));
+
+    
 
     while (true) {
         // Wait for client
@@ -111,28 +156,13 @@ int main() {
         asio::error_code error;
         size_t len = socket.read_some(asio::buffer(buf), error);
         
-        int numServers = getNumServers();
+        // int numActiveServers = getNumActiveServers();
         int key;
         memcpy(&key, &buf, sizeof(int));
-        short port = hashToServerPort(key, numServers);
-
-        short neighborPort1 = port - 1; 
-        short neighborPort2 = port + 1;
-
-        if (port - 1 == 3001 - 1) {
-            neighborPort1 = 3001 + numServers - 1;
-        }
-        if (port + 1 == numServers + 3001) {
-            neighborPort2 = 3001;
-        }
-
-        printf("port: %d, neighborPort1: %d, neighborPort2: %d\n", port, neighborPort1, neighborPort2);
-
-        struct addressInfo serverAddress = { .IPAddress = {127, 0, 0, 1}, .port = port };
-        struct addressInfo neighborAddress1 = { .IPAddress = {127, 0, 0, 1}, .port = neighborPort1 };
-        struct addressInfo neighborAddress2 = { .IPAddress = {127, 0, 0, 1}, .port = neighborPort2 };
-
-        std::array<addressInfo,3> response = {serverAddress, neighborAddress1, neighborAddress2};
+        std::array<addressInfo,3> response = {getServer(key), getNeighborServer1(key), getNeighborServer2(key)};
+        // response[0] = getServer(key);
+        // response[1] = getNeighborServer2(key);       
+        // response[2] = getNeighborServer2(key);
 
         std::array<uint8_t, 18> responseMessage;
         memcpy(&responseMessage, &response, 3*sizeof(addressInfo));

@@ -3,15 +3,9 @@
 
 
 
-void initDHT() {
-	// initializes the DHT servers with data
-	printf("INITIALIZING DHT\n");
-	
-
-	return;
+std::string addressInfo_tostr(addressInfo info) {
+	return ip_tostr(info.IPAddress) + ":" + std::to_string(info.port);
 }
-
-
 
 
 // source: https://stackoverflow.com/questions/54512286/how-to-join-an-int-array-to-string-in-c-separated-by-a-dot

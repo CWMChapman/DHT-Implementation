@@ -47,6 +47,14 @@ void connectToDHT(addressInfo serverInfo, short action) {
 	return;
 }
 
+void printMap(std::unordered_map<int, int> serverMap) {
+	std::unordered_map<int, int>::iterator itr; 
+    std::cout << "\nAll Elements : \n"; 
+    for (itr = serverMap.begin(); itr != serverMap.end(); itr++)  
+        std::cout << itr->first << "  " << itr->second << std::endl;
+	return;
+}
+
 void server(addressInfo serverInfo) {
 	connectToDHT(serverInfo, 0);
 	std::unordered_map<int, int> serverMap;
@@ -65,8 +73,8 @@ void server(addressInfo serverInfo) {
 		asio::error_code error;
 		size_t len = socket.read_some(asio::buffer(client_message), error);
 
-		printf("\nSERVER PORT: %d\n", serverInfo.port);
-
+		// printf("\nSERVER IP: %s, SERVER PORT: %d\n", ip_tostr(serverInfo.IPAddress), serverInfo.port);
+		std::cout << "SERVER IP: " << ip_tostr(serverInfo.IPAddress) << ", SERVER PORT: " << serverInfo.port << std::endl;
 		struct DHT_action message;
 		memcpy(&message, &client_message, sizeof(DHT_action));
 		int action = message.action;
@@ -84,8 +92,9 @@ void server(addressInfo serverInfo) {
 		else if(action == 2){
 			serverMap.erase(key);
 		}
+		printMap(serverMap);
 
-		struct DHT_action return_message = {.action = 0, .key = 0, .value = value};
+		struct DHT_action return_message = {.action = action, .key = key, .value = value};
 
 
 		// for now, just write back the same information to the client...

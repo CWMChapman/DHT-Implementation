@@ -31,7 +31,7 @@ Port 3001 is open waiting for servers to message about joining or quiting
 
 
 void initDHT() {
-	// initializes the DHT servers with data
+	// initializes the DHTin servers with data
 	printf("INITIALIZING DHT\n");
 	
 	return;
@@ -169,5 +169,5 @@ int main() {
         asio::write(socket, asio::buffer(responseMessage), error);
     }
 
-    //return 0;
+    return 0;
 }

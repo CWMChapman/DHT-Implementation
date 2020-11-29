@@ -160,9 +160,6 @@ int main() {
         int key;
         memcpy(&key, &buf, sizeof(int));
         std::array<addressInfo,3> response = {getServer(key), getNeighborServer1(key), getNeighborServer2(key)};
-        // response[0] = getServer(key);
-        // response[1] = getNeighborServer2(key);       
-        // response[2] = getNeighborServer2(key);
 
         std::array<uint8_t, 18> responseMessage;
         memcpy(&responseMessage, &response, 3*sizeof(addressInfo));

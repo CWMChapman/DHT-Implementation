@@ -93,6 +93,7 @@ void server(addressInfo serverInfo) {
 			serverMap.erase(key);
 		}
 		printMap(serverMap);
+		std::cout << "\n\n\n";
 
 		struct DHT_action return_message = {.action = action, .key = key, .value = value};
 

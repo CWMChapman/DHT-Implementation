@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <algorithm>
+#include <unordered_map>
 
 #include "../include/functions.hpp"
 
@@ -40,8 +41,13 @@ void initDHT() {
 
 // bool serverStatus = false; // True means its been initialized with data
 
-
+// std::unordered_map<addressInfo, addressInfo> serverOutageMap;
+// std::vector<addressInfo> allServers;
 std::vector<addressInfo> activeServers;
+
+
+// [ 3002, 3003, 3004 ]
+// 
 
 int getNumActiveServers() {
     return activeServers.size();
@@ -128,8 +134,6 @@ addressInfo getNeighborServer2(int key) {
 2. remove from the activeServers vector
 3. hash all of the entries of the server that's leaving
 4. 
-
-
 
 */
 

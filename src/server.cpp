@@ -18,32 +18,27 @@ M=00: Insert
 M=01: Lookup
 M=10: Delete
 M=11: Do Nothing. For later, maybe we do this to reorganize the servers keys and redistribute things in case a server is added or removed.
-
 *** */
 
 using asio::ip::tcp;
 
-void connectToDHT(addressInfo serverInfo, short action) {
+
+void rehash(addressInfo serverInfo, std::unordered_map<int, int> serverMap) {
+	std::cout << "REHASHING SERVER: " << addressInfo_tostr(serverInfo) << std::endl;
 	addressInfo trackerServerInfo = { .IPAddress = {127, 0, 0, 1}, .port = 3001 };
-	serverAction sA = {.action = action, .info = serverInfo};
-	// action = 0 -> join DHT
-	// action = 1 -> leave DHT
+	DHT_action rehashKV;
 
-	asio::io_context io_context;
-	tcp::resolver resolver(io_context);
-	tcp::resolver::results_type endpoints = resolver.resolve(ip_tostr(trackerServerInfo.IPAddress), std::to_string(trackerServerInfo.port));
-
-	tcp::socket socket(io_context);
-	asio::connect(socket, endpoints);
-
-	asio::error_code error;
-	std::array<uint8_t, 8> server_message;
-	memcpy(&server_message, &sA, sizeof(serverAction));
-
-	asio::write(socket, asio::buffer(server_message), error);
-	
-	// no expected response
-	
+	std::unordered_map<int, int>::iterator itr; 
+	for (itr = serverMap.begin(); itr != serverMap.end(); itr++) {
+		rehashKV.action = 0;
+		rehashKV.key = itr->first;
+		rehashKV.value = itr->second;
+		serverMap.erase(rehashKV.key);
+        std::cout << "REHASHING KEY: " << rehashKV.key << ", VALUE: " << rehashKV.value << std::endl;
+		
+		DHT_Request(trackerServerInfo, rehashKV);
+		
+	}
 	return;
 }
 
@@ -69,36 +64,35 @@ void server(addressInfo serverInfo) {
 		tcp::socket socket(io_context);
 		acceptor.accept(socket);
 
-		std::array<uint8_t, 12> client_message;
+		// RECIEVE MESSAGE
+		std::array<uint8_t, sizeof(DHT_action)> client_message;
 		asio::error_code error;
 		size_t len = socket.read_some(asio::buffer(client_message), error);
-
-		// printf("\nSERVER IP: %s, SERVER PORT: %d\n", ip_tostr(serverInfo.IPAddress), serverInfo.port);
-		std::cout << "SERVER IP: " << ip_tostr(serverInfo.IPAddress) << ", SERVER PORT: " << serverInfo.port << std::endl;
 		struct DHT_action message;
 		memcpy(&message, &client_message, sizeof(DHT_action));
+
+
+		std::cout << "MESSAGE RECIEVED ON SERVER: " << addressInfo_tostr(serverInfo) << std::endl;
 		int action = message.action;
 		int key = message.key;
 		int value = message.value;
 		printf("action: %d, key: %d, value: %d\n", action, key, value);
 
-		// adding/finding/deleting keys from map and letting us know if the actions were completed or not
-		if(action == 0){
-			serverMap[key] = value;
-		}
-		else if(action == 1){
-			value = serverMap[key];
-		}
-		else if(action == 2){
-			serverMap.erase(key);
-		}
+
+		// INSERT / LOOKUP / DELETE FROM SERVER'S UNORDERED MAP
+		if(action == 0) serverMap[key] = value;
+		else if(action == 1) value = serverMap[key];
+		else if(action == 2) serverMap.erase(key);
+		else if(action == 4){
+			rehash(serverInfo, serverMap);
+		} 
+
 		printMap(serverMap);
 		std::cout << "\n\n\n";
 
-		struct DHT_action return_message = {.action = action, .key = key, .value = value};
-
-
+		
 		// for now, just write back the same information to the client...
+		struct DHT_action return_message = {.action = action, .key = key, .value = value};
 		memcpy(&client_message, &return_message, sizeof(DHT_action));
 		asio::write(socket, asio::buffer(client_message), error);
 	}
@@ -117,7 +111,6 @@ int main() {
 		servers.push_back(std::thread(server, serverAddresses[i])); // t(function, a0, a1, ...)
 	for (auto &server : servers) 
 		server.join();
-
 
 	return 0;
 }

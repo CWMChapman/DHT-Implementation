@@ -80,8 +80,12 @@ DHT_action DHT_Request(DHT_action akv) {
 	DHT_action neighborServer1 = Server_Request(neighbor1, akv);
 	DHT_action neighborServer2 = Server_Request(neighbor2, akv);
 	
-	if (primaryServer == neighborServer1  && primaryServer == neighborServer2) {
+	if (primaryServer == neighborServer1  && primaryServer == neighborServer2 && primaryServer.key != -1) {
 		return primaryServer;
+	}
+	else if (primaryServer.key == -1) {
+		std::cout << "\nNO SERVERS ACTIVE IN THE DHT\n" << std::endl;
+		return (DHT_action){.action = -1, .key = -1, .value = -1};
 	}
 	else {
 		std::cout << "\nSERVER RESPONSES DO NOT MATCH:" << std::endl;

@@ -30,7 +30,7 @@ void rehash(addressInfo serverInfo, std::unordered_map<int, int> serverMap) {
 	std::unordered_map<int, int>::iterator itr; 
 
 	itr = serverMap.begin();
-	while(itr != serverMap.end()){
+	while(itr != serverMap.end()) {
 		rehashKV.action = 0;
 		rehashKV.key = itr->first;
 		rehashKV.value = itr->second;
@@ -75,7 +75,7 @@ void server(addressInfo serverInfo) {
 		int key = message.key;
 		int value = message.value;
 
-		// std::cout << "MESSAGE RECIEVED ON SERVER <" << addressInfo_tostr(serverInfo) << ">: " << dht_action_tostr(message) << std::endl;
+		std::cout << "MESSAGE RECIEVED ON SERVER <" << addressInfo_tostr(serverInfo) << ">: " << dht_action_tostr(message) << std::endl;
 
 		// INSERT / LOOKUP / DELETE FROM SERVER'S UNORDERED MAP
 		if(action == 0) {
@@ -110,7 +110,7 @@ void server(addressInfo serverInfo) {
 			memcpy(&client_message, &return_message, sizeof(DHT_action));
 			asio::write(socket, asio::buffer(client_message), error);
 		}
-		else if(action == 4) {
+		else if(action == 3) {
 			// REHASH 
 			// just write back the same information to the client...
 			DHT_action return_message = {.action = action, .key = key, .value = value};

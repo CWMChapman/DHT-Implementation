@@ -102,8 +102,10 @@ addressInfo getServer(int key) {
     if (isServerDown(primaryServer)) {
         // printf("\nSERVER IS DOWN\n");
         addressInfo backupServer = serverOutageMap[primaryServer];
+        // std::cout << "server: " << addressInfo_tostr(backupServer) << std::endl;
         while (isServerDown(backupServer)) {
-            backupServer = serverOutageMap[backupServer];
+            backupServer = serverOutageMap.at(backupServer);
+            // std::cout << "inside_server: " << addressInfo_tostr(backupServer) << std::endl;
         }
         return backupServer;
     }
@@ -150,6 +152,7 @@ void addServer(addressInfo server) {
     printf("SERVER ALREADY IN DHT!\n");
     return;
 }
+
 void deleteServer(addressInfo serverToDelete) {
     if (!isServerActive(serverToDelete)) {
         std::cout << "SERVER IS NOT ACTIVE AND THEREFORE CANNOT BE DELETED!" << std::endl;
@@ -159,26 +162,25 @@ void deleteServer(addressInfo serverToDelete) {
     int index;
     for (index = 0; index < getNumActiveServers(); index++)
         if (activeServers[index] == serverToDelete) break;
-    int neighbor1Index = index - 1;
-    int neighbor2Index = index + 1;
-    if (neighbor1Index == -1) neighbor1Index = getNumActiveServers() - 1; // loop to the back if you're incrementing below the lowest server in vector
+    activeServers.erase(activeServers.begin() + index); 
+
+    int neighbor1Index = index-1; // now that the server being deleted is gone, neighbor 2 replaces it and we must rehash it so its new neighbors redudantly hold its keys
+    int neighbor2Index = index; // now that the server being deleted is gone, neighbor 2 replaces it and we must rehash it so its new neighbors redudantly hold its keys
+    if (neighbor1Index == -1) neighbor1Index = getNumActiveServers() - 1; // loop to front if you're incrementing past the last vetor in server
     if (neighbor2Index == getNumActiveServers()) neighbor2Index = 0; // loop to front if you're incrementing past the last vetor in server
     addressInfo neighbor1 = activeServers[neighbor1Index];
     addressInfo neighbor2 = activeServers[neighbor2Index];
-    serverOutageMap[serverToDelete] = neighbor1; // set neighbor1 to be backup for deleted server in the serveroutagemap
-    
-    // std::cout << "deleting server: " << addressInfo_tostr(serverToDelete) << std::endl;
-    // printf("activeServers.size() = %lu, index: %d\n", activeServers.size(), index);
-    for(int i=0; i < activeServers.size(); i++)
-        std::cout << i << ": "<< addressInfo_tostr(activeServers.at(i)) << std::endl;
-    activeServers.erase(activeServers.begin() + index); 
-    
-    // Server_Request(neighbor1, (DHT_action){.action = 4}); 
+
+    serverOutageMap[serverToDelete] = neighbor2; // set neighbor1 to be backup for deleted server in the serveroutagemap
+    Server_Request(neighbor1, (DHT_action){.action = 4}); // tell the server to rehash its keys
     Server_Request(neighbor2, (DHT_action){.action = 4}); // tell the server to rehash its keys
     
-    printActiveServers();
-    // printAllServers();
     printf("FINISHED DELETING THE SERVER!\n");
+    std::cout << "main: " << addressInfo_tostr(neighbor2) << std::endl;
+    std::cout << "newPrimary: " << addressInfo_tostr(getServer(1)) << std::endl;
+    std::cout << "newN1: " << addressInfo_tostr(getNeighborServer1(1)) << std::endl;
+    std::cout << "newN2: " << addressInfo_tostr(getNeighborServer2(1)) << std::endl;
+    printActiveServers();
 
     return;
 }

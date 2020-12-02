@@ -38,7 +38,7 @@ typedef struct DHT_action {
 // TO STRING FUNCTIONS
 std::string ip_tostr(std::array<uint8_t,4> IPAddress);
 std::string addressInfo_tostr(addressInfo info);
-std::string dht_action_tostr(addressInfo info);
+std::string dht_action_tostr(DHT_action a);
 
 
 // SERVER MESSAGING FUNCTIONS

@@ -28,16 +28,16 @@ void rehash(addressInfo serverInfo, std::unordered_map<int, int> serverMap) {
 	DHT_action rehashKV;
 
 	std::unordered_map<int, int>::iterator itr; 
-	for (itr = serverMap.begin(); itr != serverMap.end(); itr++) {
+
+	itr = serverMap.begin();
+	while(itr != serverMap.end()){
 		rehashKV.action = 0;
 		rehashKV.key = itr->first;
 		rehashKV.value = itr->second;
-		serverMap.erase(rehashKV.key);
-        // std::cout << "REHASHING KEY: " << rehashKV.key << ", VALUE: " << rehashKV.value << std::endl;
-		
 		DHT_Request(rehashKV);
-		
+		itr++;
 	}
+
 	return;
 }
 
@@ -77,12 +77,11 @@ void server(addressInfo serverInfo) {
 		int value = message.value;
 		// printf("action: %d, key: %d, value: %d\n", action, key, value);
 
+		std::cout << "MESSAGE RECIEVED ON SERVER <" << addressInfo_tostr(serverInfo) << ">: " << dht_action_tostr(message) << std::endl;
 
 		// INSERT / LOOKUP / DELETE FROM SERVER'S UNORDERED MAP
 		if(action == 0) {
 			// INSERT
-			std::cout << "MESSAGE RECIEVED ON SERVER: " << addressInfo_tostr(serverInfo) << std::endl;
-			printf("action: %d, key: %d, value: %d\n", action, key, value);
 			serverMap[key] = value;
 			printMap(serverMap);
 			std::cout << "\n\n\n";
@@ -94,8 +93,6 @@ void server(addressInfo serverInfo) {
 		} 
 		else if(action == 1){
 			// LOOKUP KEY
-			std::cout << "MESSAGE RECIEVED ON SERVER: " << addressInfo_tostr(serverInfo) << std::endl;
-			printf("action: %d, key: %d, value: %d\n", action, key, value);
 			if (serverMap.find(key) == serverMap.end()) value = -1;
 			else value = serverMap.at(key);
 			
@@ -106,8 +103,6 @@ void server(addressInfo serverInfo) {
 		}
 		else if(action == 2){
 			// DELETE
-			std::cout << "MESSAGE RECIEVED ON SERVER: " << addressInfo_tostr(serverInfo) << std::endl;
-			printf("action: %d, key: %d, value: %d\n", action, key, value);
 			serverMap.erase(key);
 			printMap(serverMap);
 			std::cout << "\n\n\n";
@@ -123,10 +118,11 @@ void server(addressInfo serverInfo) {
 			memcpy(&client_message, &return_message, sizeof(DHT_action));
 			asio::write(socket, asio::buffer(client_message), error);
 			if (!serverMap.empty()){
-				std::thread rehashTread (rehash, serverInfo, serverMap);
+				std::unordered_map<int,int> mapCopy = serverMap;
+				serverMap.clear();
+				std::thread rehashTread (rehash, serverInfo, mapCopy);
 				rehashTread.detach(); // allow function server() to continue to run while keys are being rehashed such that they can be received again
 			}
-			// else std::cout << addressInfo_tostr(serverInfo) << " REHASHING -- SERVER MAP IS EMPTY" << std::endl;
 		} 
 	}
 
@@ -167,3 +163,27 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
+
+	// for (const auto &element : serverMap) {
+	// 	// std::cout << element.first << ": " << element.second << std::endl;
+	// 	rehashKV.action = 0;
+	// 	rehashKV.value = element.second;
+	// 	std::cout << "element.second = " << element.second << std::endl; 
+	// 	rehashKV.key = element.first;
+	// 	// std::cout << "element.first = " << element.first << std::endl; 
+	// 	serverMap.erase(rehashKV.key);
+    //     // std::cout << "REHASHING KEY: " << rehashKV.key << ", VALUE: " << rehashKV.value << std::endl;
+		
+	// 	DHT_Request(rehashKV);
+
+	// }
+	// for (itr = serverMap.begin(); itr != serverMap.end(); itr++) {
+	// 	rehashKV.action = 0;
+	// 	rehashKV.key = itr->first;
+	// 	rehashKV.value = itr->second;
+	// 	serverMap.erase(rehashKV.key);
+    //     // std::cout << "REHASHING KEY: " << rehashKV.key << ", VALUE: " << rehashKV.value << std::endl;
+		
+	// 	DHT_Request(rehashKV);
+		
+	// }

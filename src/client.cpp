@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 		akv = { .action = 0, .key = std::stoi(argv[2]), .value = std::stoi(argv[3]) };
 		DHT_action response = DHT_Request(akv);
 		if(response == akv){ 
-			std::cout << "INSERTED: <" << akv.key << ", " << akv.value << "> SUCCESSFULLY" << std::endl;
+			std::cout << "INSERT <" << akv.key << ", " << akv.value << "> SUCCESSFUL" << std::endl;
 		}
 		else {
 			std::cout << "INSERT <" << akv.key << ", " << akv.value << "> FAILED" << std::endl;
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 		akv = { .action = 1, .key = std::stoi(argv[2]) };
 		DHT_action response = DHT_Request(akv);
 		if(response.value != -1){ 
-			std::cout << "SUCCESSFUL SEARCH: KEY <" << akv.key << "> RETRIEVED <" << akv.value << ">" << std::endl;
+			std::cout << "SUCCESSFUL SEARCH -- KEY: <" << akv.key << "> RETRIEVED VALUE: <" << response.value << ">" << std::endl;
 		}
 		else {
 			std::cout << "KEY DOES NOT EXIST IN DHT"<< std::endl;
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
 	else if (argc == 3 && (strcmp(argv[1], "rm_server") == 0 || strcmp(argv[1], "3") == 0)) {
 		addressInfo serverToRemove = {.IPAddress = {127, 0, 0, 1}, .port = static_cast<short>(std::stoi(argv[2]))};
 		connectToDHT(serverToRemove, 1);
-		std::cout << "REMOVED SERVER: <" << addressInfo_tostr(serverToRemove) << ">" << std::endl;
+		std::cout << "REMOVE <" << addressInfo_tostr(serverToRemove) << "> REQUESTED (see mainServer terminal for details)" << std::endl;
 		return 0;
 	} 	// ./client rm_server <server port>
 
@@ -91,6 +91,7 @@ int main(int argc, char** argv) {
 			if(response.value == -1){ 
 				std::cout << "KEY <" << akv.key << "> DOES NOT EXIST IN DHT"<< std::endl;
 			}
+			std::cout << "RANGE SEARCH COMPLETE"<< std::endl;
 		}
 		return 0;
 	} 	// ./client add_server <server port>

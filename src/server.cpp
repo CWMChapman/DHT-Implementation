@@ -71,13 +71,11 @@ void server(addressInfo serverInfo) {
 		memcpy(&message, &client_message, sizeof(DHT_action));
 
 
-		// std::cout << "MESSAGE RECIEVED ON SERVER: " << addressInfo_tostr(serverInfo) << std::endl;
 		int action = message.action;
 		int key = message.key;
 		int value = message.value;
-		// printf("action: %d, key: %d, value: %d\n", action, key, value);
 
-		std::cout << "MESSAGE RECIEVED ON SERVER <" << addressInfo_tostr(serverInfo) << ">: " << dht_action_tostr(message) << std::endl;
+		// std::cout << "MESSAGE RECIEVED ON SERVER <" << addressInfo_tostr(serverInfo) << ">: " << dht_action_tostr(message) << std::endl;
 
 		// INSERT / LOOKUP / DELETE FROM SERVER'S UNORDERED MAP
 		if(action == 0) {
@@ -86,8 +84,8 @@ void server(addressInfo serverInfo) {
 			printMap(serverMap);
 			std::cout << "\n\n\n";
 
-			// for now, just write back the same information to the client...
-			struct DHT_action return_message = {.action = action, .key = key, .value = value};
+			// just write back the same information to the client...
+			DHT_action return_message = {.action = action, .key = key, .value = value};
 			memcpy(&client_message, &return_message, sizeof(DHT_action));
 			asio::write(socket, asio::buffer(client_message), error);
 		} 
@@ -96,8 +94,8 @@ void server(addressInfo serverInfo) {
 			if (serverMap.find(key) == serverMap.end()) value = -1;
 			else value = serverMap.at(key);
 			
-			// for now, just write back the same information to the client...
-			struct DHT_action return_message = {.action = action, .key = key, .value = value};
+			// just write back the same information to the client...
+			DHT_action return_message = {.action = action, .key = key, .value = value};
 			memcpy(&client_message, &return_message, sizeof(DHT_action));
 			asio::write(socket, asio::buffer(client_message), error);
 		}
@@ -107,13 +105,14 @@ void server(addressInfo serverInfo) {
 			printMap(serverMap);
 			std::cout << "\n\n\n";
 			
-			// for now, just write back the same information to the client...
-			struct DHT_action return_message = {.action = action, .key = key, .value = value};
+			// just write back the same information to the client...
+			DHT_action return_message = {.action = action, .key = key, .value = value};
 			memcpy(&client_message, &return_message, sizeof(DHT_action));
 			asio::write(socket, asio::buffer(client_message), error);
 		}
 		else if(action == 4) {
 			// REHASH 
+			// just write back the same information to the client...
 			DHT_action return_message = {.action = action, .key = key, .value = value};
 			memcpy(&client_message, &return_message, sizeof(DHT_action));
 			asio::write(socket, asio::buffer(client_message), error);
@@ -163,27 +162,3 @@ int main(int argc, char** argv) {
 
 	return 0;
 }
-
-	// for (const auto &element : serverMap) {
-	// 	// std::cout << element.first << ": " << element.second << std::endl;
-	// 	rehashKV.action = 0;
-	// 	rehashKV.value = element.second;
-	// 	std::cout << "element.second = " << element.second << std::endl; 
-	// 	rehashKV.key = element.first;
-	// 	// std::cout << "element.first = " << element.first << std::endl; 
-	// 	serverMap.erase(rehashKV.key);
-    //     // std::cout << "REHASHING KEY: " << rehashKV.key << ", VALUE: " << rehashKV.value << std::endl;
-		
-	// 	DHT_Request(rehashKV);
-
-	// }
-	// for (itr = serverMap.begin(); itr != serverMap.end(); itr++) {
-	// 	rehashKV.action = 0;
-	// 	rehashKV.key = itr->first;
-	// 	rehashKV.value = itr->second;
-	// 	serverMap.erase(rehashKV.key);
-    //     // std::cout << "REHASHING KEY: " << rehashKV.key << ", VALUE: " << rehashKV.value << std::endl;
-		
-	// 	DHT_Request(rehashKV);
-		
-	// }

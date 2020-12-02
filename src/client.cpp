@@ -11,12 +11,13 @@ using asio::ip::tcp;
 2 bit message action, 6 bits of padding, 32 bit key, 32 bit value
 
 
-M is a 2-bit message action, corresponding to 4 possible messages given shortly, K is a 32-bit key, V is a 32-bit value. The four message types in the API are:
+M is a 2-bit DHT action, corresponding to 4 possible messages, K is a 32-bit key, V is a 32-bit value. The four message types in our DHT message format are:
 ACTION:
 M=00: Insert
 M=01: Lookup
 M=10: Delete
 M=11: Rehash server's keys (PRIVATE ACTION FOR DHT, CLIENT SHOULDNT USE)
+M=options 4 through 63 are not used yet, but could be implemented for other DHT actions later 
 
 */
 
@@ -91,8 +92,8 @@ int main(int argc, char** argv) {
 			if(response.value == -1){ 
 				std::cout << "KEY <" << akv.key << "> DOES NOT EXIST IN DHT"<< std::endl;
 			}
-			std::cout << "RANGE SEARCH COMPLETE"<< std::endl;
 		}
+		std::cout << "RANGE SEARCH COMPLETE"<< std::endl;
 		return 0;
 	} 	// ./client add_server <server port>
 

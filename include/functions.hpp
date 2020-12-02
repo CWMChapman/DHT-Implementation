@@ -23,7 +23,7 @@ typedef struct serverAction {
 } serverAction;
 
 typedef struct DHT_action {
-    int action;
+    int action; // 0: insert, 1: search, 2: delete, 3: rehash
     int key;
     int value;
     bool operator==(const DHT_action& other) const

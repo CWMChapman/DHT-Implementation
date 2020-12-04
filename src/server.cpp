@@ -43,9 +43,11 @@ void rehash(addressInfo serverInfo, std::unordered_map<int, int> serverMap) {
 
 void printMap(std::unordered_map<int, int> serverMap) {
 	std::unordered_map<int, int>::iterator itr; 
-    std::cout << "\nAll Elements : \n"; 
+    std::cout << "\nAll Elements (" << serverMap.size() << " items)" << std::endl; 
+	std::cout << "=============================" << std::endl;
     for (itr = serverMap.begin(); itr != serverMap.end(); itr++)  
         std::cout << itr->first << "  " << itr->second << std::endl;
+	std::cout << "=============================" << std::endl;
 	return;
 }
 
@@ -123,6 +125,14 @@ void server(addressInfo serverInfo) {
 				rehashTread.detach(); // allow function server() to continue to run while keys are being rehashed such that they can be received again
 			}
 		} 
+		else if(action == 4) {
+			// TERMINATE SERVER THREAD
+			// just write back the same information to the client...
+			DHT_action return_message = {.action = action, .key = key, .value = value};
+			memcpy(&client_message, &return_message, sizeof(DHT_action));
+			asio::write(socket, asio::buffer(client_message), error);
+			return; //closes thread
+		}
 	}
 
 	return;
@@ -143,13 +153,17 @@ std::vector<addressInfo> setUpServerAddresses(int numServers) {
 }
 
 int main(int argc, char** argv) {
-	int numServers = 10;
+	int numServers;
 	
 	if (argc == 3 && strcmp(argv[1], "add_server") == 0) {
 		server((addressInfo){.IPAddress = {127, 0, 0, 1}, .port = static_cast<short>(std::stoi(argv[2]))});
 		return 0;
 	}
-	else if (argc == 2) numServers = std::stoi(argv[1]);
+	else if (argc == 2 && std::stoi(argv[1]) < 100) numServers = std::stoi(argv[1]); // At least my computer cant handle more than 100 threads of servers, not sure why
+	else {
+		std::cout << "Creating 10 servers (default)" << std::endl;
+		numServers = 10;
+	}
 	
 	std::vector<std::thread> servers;
 	std::vector<addressInfo> serverAddresses = setUpServerAddresses(numServers); // see functions.cpp for this functions

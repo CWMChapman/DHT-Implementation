@@ -97,15 +97,9 @@ void printAllServers() {
 // get server address that is the primary location of the key
 addressInfo getServer(int key) {
     addressInfo primaryServer = allServers[hash(key) % allServers.size()];
-    // std::cout << "GETTING SERVER ... \t" << addressInfo_tostr(primaryServer) << std::endl;
     if (isServerDown(primaryServer)) {
-        // printf("\nSERVER IS DOWN\n");
         addressInfo backupServer = serverOutageMap[primaryServer];
-        // std::cout << "server: " << addressInfo_tostr(backupServer) << std::endl;
-        while (isServerDown(backupServer)) {
-            backupServer = serverOutageMap.at(backupServer);
-            // std::cout << "inside_server: " << addressInfo_tostr(backupServer) << std::endl;
-        }
+        while (isServerDown(backupServer)) backupServer = serverOutageMap.at(backupServer);
         return backupServer;
     }
     else return primaryServer;
@@ -135,11 +129,30 @@ addressInfo getNeighborServer2(int key) {
 void addServer(addressInfo serverToAdd) {
     if (!isServerActive(serverToAdd)) {
         activeServers.push_back(serverToAdd);
-        allServers.push_back(serverToAdd);
+        // if the server is already in all servers, dont add it to the back, and then we dont have to rehash everything
+        if(std::find(allServers.begin(), allServers.end(), serverToAdd) != allServers.end()) {
+            addressInfo backupServer = serverOutageMap[serverToAdd];
+            while (isServerDown(backupServer)) backupServer = serverOutageMap.at(backupServer);
+            Server_Request(backupServer, (DHT_action){.action = 3}); // just have the backup server rehash its keys back to the server now that its back
+            serverOutageMap.erase(serverToAdd); // then get rid of the server we're adding back from the serverOutageMap
+
+        }
+        else {
+            // only need to rehash if the allServers array actually needs to change size
+            allServers.push_back(serverToAdd);
+            for (int i=0; i < activeServers.size(); i++)
+            Server_Request(activeServers.at(i), (DHT_action){.action = 3});
+
+            allServers = activeServers;
+            serverOutageMap.clear();
+        }
+        
 
         // rehash each server's keys because allServers has changed size
-        for(int i=0; i < activeServers.size(); i++)
-            Server_Request(activeServers.at(i), (DHT_action){.action = 3});
+
+        // since we are rehashing everything anyway, we might as well clear the hash map and set all servers to only be the active ones.
+        
+        
 
         printActiveServers();
         std::cout << "\nSERVER <" << addressInfo_tostr(serverToAdd) << "> ADDED\n" << std::endl;
@@ -149,10 +162,10 @@ void addServer(addressInfo serverToAdd) {
 }
 
 // delete server from DHT
-void deleteServer(addressInfo serverToDelete) {
+bool deleteServer(addressInfo serverToDelete) {
     if (!isServerActive(serverToDelete)) {
         std::cout << "SERVER IS NOT ACTIVE AND THEREFORE CANNOT BE DELETED!" << std::endl;
-        return;
+        return false;
     }
 
     int index;
@@ -174,7 +187,7 @@ void deleteServer(addressInfo serverToDelete) {
     printActiveServers();
     std::cout << "\nSERVER <" << addressInfo_tostr(serverToDelete) << "> DELETED\n" << std::endl;
 
-    return;
+    return true;
 }
 
 
@@ -198,7 +211,11 @@ void listenForServers() {
         // std::cout << "recieved message with action " << message.action << " from server " << addressInfo_tostr(message.info) << std::endl;
         
         if (message.action == 0) addServer(message.info);
-        else if (message.action == 1) deleteServer(message.info);
+        else if (message.action == 1) {
+            if (deleteServer(message.info)) { // if the server is active and can be deleted
+                Server_Request(message.info, (DHT_action){.action = 4}); // tell the server to terminate
+            }
+        }
 
         // printActiveServers();
     }

@@ -39,9 +39,9 @@ struct KeyHasher {
 
 // Special Unordered maps:
 // https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
-std::unordered_map<addressInfo, addressInfo, KeyHasher> serverOutageMap;
-std::vector<addressInfo> allServers;
-std::vector<addressInfo> activeServers; 
+std::unordered_map<addressInfo, addressInfo, KeyHasher> serverOutageMap; // relates a downed server with a server that will replace it in the network. cleared after we add a new server, since everything is rehashed anyway
+std::vector<addressInfo> allServers; // stores all the servers that have been active since the last server was added
+std::vector<addressInfo> activeServers; // stores all of the active servers
 
 
 // check to see if the server is in the Server Outage Map
@@ -144,15 +144,8 @@ void addServer(addressInfo serverToAdd) {
             Server_Request(activeServers.at(i), (DHT_action){.action = 3});
 
             allServers = activeServers;
-            serverOutageMap.clear();
+            serverOutageMap.clear(); 
         }
-        
-
-        // rehash each server's keys because allServers has changed size
-
-        // since we are rehashing everything anyway, we might as well clear the hash map and set all servers to only be the active ones.
-        
-        
 
         printActiveServers();
         std::cout << "\nSERVER <" << addressInfo_tostr(serverToAdd) << "> ADDED\n" << std::endl;

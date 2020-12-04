@@ -1,5 +1,4 @@
 # Distributed Hash Table
-Christopher Chapman and Juan Huerta
 
 
 

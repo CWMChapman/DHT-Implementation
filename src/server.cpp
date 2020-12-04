@@ -159,7 +159,14 @@ int main(int argc, char** argv) {
 		server((addressInfo){.IPAddress = {127, 0, 0, 1}, .port = static_cast<short>(std::stoi(argv[2]))});
 		return 0;
 	}
-	else if (argc == 2 && std::stoi(argv[1]) < 100) numServers = std::stoi(argv[1]); // At least my computer cant handle more than 100 threads of servers, not sure why
+	else if (argc == 2) {
+		if (std::stoi(argv[1]) <= 50) numServers = std::stoi(argv[1]); 
+		else {
+			// At least my computer cant handle more than 100 threads of servers, not sure why
+			std::cout << "Please try a fewer number of servers MAX 50." << std::endl; 
+			return 1;
+		}
+	} 
 	else {
 		std::cout << "Creating 10 servers (default)" << std::endl;
 		numServers = 10;
